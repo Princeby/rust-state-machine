@@ -22,7 +22,6 @@ impl system::Config for Runtime {
 }
 
 impl balances::Config for Runtime {
-	type AccountId = types::AccountId;
     type Balance = types::Balance;
 }
 
@@ -55,7 +54,7 @@ fn main() {
 	//Increment the nonce of `alice`. */
 	runtime.system.inc_nonce(&"alice".to_string());
 
-	///* TODO: Execute a transfer from `alice` to `bob` for 30 tokens.
+	// TODO: Execute a transfer from `alice` to `bob` for 30 tokens.
 	runtime.balances.set_balance(&"bob".to_string(), 0);
 	let _res = runtime
 		.balances
@@ -84,18 +83,17 @@ mod tests {
 	//initialize a new instance of our Pallet
 	struct TestConfig;
 	struct BalanceTestConfig;
-	impl super::Config for TestConfig {
+	impl crate::system::Config for TestConfig {
 		type AccountId = String;
 		type BlockNumber = u32;
 		type Nonce = u32;
 	}
 	impl super::Config for BalanceTestConfig {
-		type AccountId = String;
 		type Balance = u128;
 	}
 	#[test]
 	fn init_balances() { 
-		let mut balances = balances::Pallet::<SBalanceTestConfig>::new();
+		let mut balances = balances::Pallet::<BalanceTestConfig>::new();
 
 		assert_eq!(balances.balance(&"alice".to_string()), 0);
 		balances.set_balance(&"alice".to_string(), 100);
