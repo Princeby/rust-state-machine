@@ -83,39 +83,33 @@ impl crate::support::Dispatch for Runtime {
 
 
 fn main() {
-	println!("Hello, world!");
 
 	//Create a mutable variable `runtime`, which is a new instance of `Runtime`.
 	let mut runtime = Runtime::new();
 
+	let alice = "alice".to_string();
+	let bob = "bob".to_string();
+	let charlie = "charlie".to_string();
+
 
 	//Set the balance of `alice` to 100, allowing us to execute other transactions.
-	runtime.balances.set_balance(&"alice".to_string(), 100);
+	runtime.balances.set_balance(&alice, 100);
 
-	//Increment the block number in system.
-	runtime.system.inc_block_number();
+	let block_1 = types::Block {
+		header: support::Header { block_number: 1},
+		extrinsics: vec![
+			support::Extrinsic {
+				caller: alice.clone(),
+				call: RuntimeCall::BalancesTransfer { to: bob, amount: 30 }
+			},
+			support::Extrinsic {
+				caller: alice,
+				call: RuntimeCall::BalancesTransfer { to: charlie, amount: 20 },
+			},
+		],
+	};
 
-	//Assert the block number is what we expect.
-	assert_eq!(runtime.system.block_number(),1);
-
-	//Increment the nonce of `alice`. */
-	runtime.system.inc_nonce(&"alice".to_string());
-
-	// TODO: Execute a transfer from `alice` to `bob` for 30 tokens.
-	runtime.balances.set_balance(&"bob".to_string(), 0);
-	let _res = runtime
-		.balances
-		.transfer("alice".to_string(),"bob".to_string(),30)
-		.map_err(|e| eprintln!("{}", e));
-	
-	// second transaction
-    /* TODO: Increment the nonce of `alice` again. */
-	runtime.system.inc_nonce(&"alice".to_string());
-    /* TODO: Execute another balance transfer, this time from `alice` to `charlie` for 20. */
-	let _res_two = runtime
-		.balances
-		.transfer("alice".to_string(),"charlie".to_string(),20)
-		.map_err(|e| eprintln!("{}", e));
+	runtime.execute_block(block_1).expect("invalid block");
 
 	/* TODO: Print the final runtime state after all transactions. */
 	println!("{:#?}", runtime);
