@@ -73,3 +73,53 @@ impl<T: Config> crate::support::Dispatch for Pallet<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+	//initialize a new instance of our Pallet
+	struct TestConfig;
+
+	impl crate::system::Config for TestConfig {
+		type AccountId = String;
+		type BlockNumber = u32;
+		type Nonce = u32;
+	}
+	impl super::Config for TestConfig {
+		type Balance = u128;
+	}
+	#[test]
+	fn init_balances() { 
+		let mut balances = super::Pallet::<TestConfig>::new();
+
+		assert_eq!(balances.balance(&"alice".to_string()), 0);
+		balances.set_balance(&"alice".to_string(), 100);
+		assert_eq!(balances.balance(&"alice".to_string()), 100);
+		assert_eq!(balances.balance(&"bob".to_string()), 0);
+	}
+
+	#[test]
+	fn transfer_balance() {
+		//TODO: Create a test that checks the following:
+		let mut balances = super::Pallet::<TestConfig>::new();
+
+		balances.set_balance(&"alice".to_string(), 0);
+		balances.set_balance(&"bob".to_string(), 0);
+        //That `alice` cannot transfer funds she does not have.
+		assert_eq!(balances.transfer("alice".to_string(),"bob".to_string(),51),
+		Err("Not enough funds."));
+		balances.set_balance(&"alice".to_string(), 100);
+
+        //That `alice` can successfully transfer funds to `bob`.
+		assert_eq!(balances.transfer("alice".to_string(), "bob".to_string(), 51),Ok(()));
+
+    	//That the balance of `alice` and `bob` is correctly updated.
+		assert_eq!(balances.balance(&"alice".to_string()), 49);
+		assert_eq!(balances.balance(&"bob".to_string()), 51);
+
+		assert_eq!(
+			balances.transfer("alice".to_string(), "bob".to_string(), 51),
+			Err("Not enough funds.")
+		);
+	}
+
+}
