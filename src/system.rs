@@ -1,29 +1,36 @@
 use std::collections::BTreeMap;
+use core::ops::AddAssign;
+use num::traits::{ Zero, One};
 
 #[derive(Debug)]
 
-pub struct Pallet {
-    block_number: u32,
-    nonce: BTreeMap<String, u32>
+pub struct Pallet<AccountId, BlockNumber, Nonce> {
+    block_number: BlockNumber,
+    nonce: BTreeMap<AccountId, Nonce>
 }
 
-impl Pallet{
+impl<AccountId, BlockNumber, Nonce> Pallet<AccountId, BlockNumber, Nonce>
+where 
+    AccountId: Ord + Clone,
+    BlockNumber: Zero + AddAssign + Copy + One,
+    Nonce: Zero + Copy + One,
+{
 
     pub fn new() -> Self {
-        Self { block_number: 0, nonce: BTreeMap::new() }
+        Self { block_number: BlockNumber::zero(), nonce: BTreeMap::new() }
     }
 
-    pub fn block_number (&self) -> u32{
+    pub fn block_number (&self) -> BlockNumber{
         self.block_number
     }
 
     pub fn inc_block_number(&mut self) {
-        self.block_number += 1;
+        self.block_number += BlockNumber::one();
     }
 
-    pub fn inc_nonce(&mut self, who: &String) {
-        let nonce: u32 = *self.nonce.get(who).unwrap_or(&0);
-        let new_nonce = nonce + 1;
+    pub fn inc_nonce(&mut self, who: &AccountId) {
+        let nonce = *self.nonce.get(who).unwrap_or(&Nonce::zero());
+        let new_nonce = nonce + Nonce::one();
         self.nonce.insert(who.clone(), new_nonce);
     }
 
@@ -33,7 +40,7 @@ impl Pallet{
 mod test {
 	#[test]
 	fn init_Pallet() {
-		let mut Pallet = super::Pallet::new();
+		let mut Pallet = super::Pallet::<String, u32, u32>::new();
 		Pallet.inc_block_number();
 		Pallet.inc_nonce(&"alice".to_string());
 
