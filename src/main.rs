@@ -2,12 +2,21 @@ mod balances;
 mod system;
 mod support;
 
+use crate::support::Dispatch;
+
 
 mod types {
     pub type AccountId = String;
     pub type Balance = u128;
     pub type BlockNumber = u32;
     pub type Nonce = u32;
+    pub type Extrinsic = crate::support::Extrinsic<AccountId, crate::RuntimeCall>;
+    pub type Header = crate::support::Header<BlockNumber>;
+    pub type Block = crate::support::Block<Header, Extrinsic>;
+}
+
+pub enum RuntimeCall {
+
 }
 
 #[derive(Debug)]
@@ -34,6 +43,25 @@ impl Runtime {
             balances: balances::Pallet::new()
         }
     }
+
+    fn execute_block(&mut self, block: types::Block) -> support::DispatchResult {
+		self.system.inc_block_number();
+		if block.header.block_number != self.system.block_number() {
+			return Err("block number does not match what is expected")
+		}
+		
+		
+		for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
+			self.system.inc_nonce(&caller);
+			let _res = self.dispatch(caller, call).map_err(|e| {
+				eprintln!(
+					"Extrinsic Error\n\tBlock Number: {}\n\tExtrinsic Number: {}\n\tError: {}",
+					block.header.block_number, i, e
+				)
+			});
+		}
+		Ok(())
+	}
 }
 
 fn main() {
