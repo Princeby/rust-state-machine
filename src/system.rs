@@ -47,12 +47,12 @@ mod test {
     }
 	#[test]
 	fn init_system() {
-		let mut Pallet = super::Pallet::<TestConfig>::new();
-		Pallet.inc_block_number();
-		Pallet.inc_nonce(&"alice".to_string());
+		let mut pallet = super::Pallet::<TestConfig>::new();
+		pallet.inc_block_number();
+		pallet.inc_nonce(&"alice".to_string());
 
-		assert_eq!(Pallet.block_number(), 1);
-		assert_eq!(Pallet.nonce.get("alice"), Some(&1));
-		assert_eq!(Pallet.nonce.get("bob"), None);
+		assert_eq!(pallet.block_number(), 1);
+		assert_eq!(pallet.nonce.get("alice"), Some(&1));
+		assert_eq!(pallet.nonce.get("bob"), None);
 	}
 }
